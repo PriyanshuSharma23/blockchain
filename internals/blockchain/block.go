@@ -1,9 +1,6 @@
 package blockchain
 
 import (
-	"bytes"
-	"crypto/sha256"
-	"strconv"
 	"time"
 )
 
@@ -12,14 +9,15 @@ type Block struct {
 	Hash      []byte
 	PrevHash  []byte
 	Data      []byte
+	Nonce     int64
 }
 
-func setHash(b *Block) {
-	timestamp := []byte(strconv.FormatInt(b.Timestamp, 10))
-	headers := bytes.Join([][]byte{timestamp, b.PrevHash, b.Data}, []byte{})
-	hash := sha256.Sum256(headers)
-	b.Hash = hash[:]
-}
+// func setHash(b *Block) {
+// 	timestamp := []byte(strconv.FormatInt(b.Timestamp, 10))
+// 	headers := bytes.Join([][]byte{timestamp, b.PrevHash, b.Data}, []byte{})
+// 	hash := sha256.Sum256(headers)
+// 	b.Hash = hash[:]
+// }
 
 func NewBlock(prevBlockHash []byte, data []byte) *Block {
 	b := &Block{
@@ -28,7 +26,11 @@ func NewBlock(prevBlockHash []byte, data []byte) *Block {
 		Data:      data,
 	}
 
-	setHash(b)
+	pow := NewProof(b)
+	nonce, hash := pow.Run()
+
+	b.Nonce = nonce
+	b.Hash = hash
 
 	return b
 }
