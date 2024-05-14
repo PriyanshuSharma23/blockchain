@@ -22,7 +22,6 @@ var printchainCmd = &cobra.Command{
 		handleErr(err, bc)
 
 		it := bc.Iterator()
-
 		for {
 			block, err := it.Next()
 			handleErr(err, bc)
@@ -30,13 +29,12 @@ var printchainCmd = &cobra.Command{
 			if block == nil {
 				break
 			}
-
+			fmt.Println()
 			fmt.Printf("Hash of the block %x\n", block.Hash)
 			fmt.Printf("Hash of the previous Block: %x\n", block.PrevHash)
 
 			pow := blockchain.NewProof(block)
 			fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
-			fmt.Println()
 			fmt.Println()
 		}
 	},

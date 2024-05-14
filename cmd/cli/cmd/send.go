@@ -30,7 +30,10 @@ var sendCmd = &cobra.Command{
 		txn, err := blockchain.NewTransaction(from, to, amount, bc)
 		handleErr(err, bc)
 
-		log.Println("Successful transaction", txn.ID)
+		err = bc.AddBlock([]blockchain.Transaction{*txn})
+		handleErr(err, bc)
+
+		log.Println("Successful!")
 	},
 }
 

@@ -143,6 +143,7 @@ func (bc *Blockchain) fetchLastHash() ([]byte, error) {
 
 		if err = item.Value(func(val []byte) error {
 			lastHash = val
+
 			return nil
 		}); err != nil {
 			return err
@@ -151,7 +152,7 @@ func (bc *Blockchain) fetchLastHash() ([]byte, error) {
 		return nil
 	})
 
-	if err == nil {
+	if err != nil {
 		return nil, err
 	}
 
