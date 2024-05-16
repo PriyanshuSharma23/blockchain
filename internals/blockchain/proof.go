@@ -10,7 +10,7 @@ import (
 	"math/big"
 )
 
-const Difficulty = 20
+const Difficulty = 12
 
 type ProofOfWork struct {
 	Block  *Block
@@ -19,7 +19,7 @@ type ProofOfWork struct {
 
 func NewProof(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
-	target.Lsh(target, 256-Difficulty)
+	target = target.Lsh(target, 256-Difficulty)
 
 	return &ProofOfWork{
 		Block:  b,
