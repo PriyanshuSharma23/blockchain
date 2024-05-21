@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"encoding/hex"
 	"log"
 	"os"
 
@@ -54,4 +55,21 @@ func linearSearch(slice []int, target int) int {
 		}
 	}
 	return -1
+}
+
+func (bc *Blockchain) getPrevTxns(tx *Transaction) map[string]Transaction {
+	var m = map[string]Transaction{}
+
+	for _, in := range tx.Inputs {
+		tx, err := bc.FindTransaction(in.ID)
+		txKey := hex.EncodeToString(in.ID)
+
+		if err != nil {
+			panic("transaction not found " + txKey)
+		}
+
+		m[txKey] = *tx
+	}
+
+	return m
 }

@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/PriyanshuSharma23/custom_blockchain/internals/blockchain"
+	"github.com/PriyanshuSharma23/custom_blockchain/internals/wallet"
 	"github.com/spf13/cobra"
 )
 
@@ -19,10 +20,17 @@ var balanceCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		address := args[0]
 
+		// if !wallet.ValidateAddress(address) {
+		// 	handleErr(fmt.Errorf("the address is invalid"), nil)
+		// }
+
 		bc, err := blockchain.ContinueBlockchain(true, nil)
 		handleErr(err, bc)
 
-		txnOuts, err := bc.FindUTXO(address)
+		pubKeyHash, err := wallet.PublicKeyHashFromAddr(address)
+		handleErr(err, bc)
+
+		txnOuts, err := bc.FindUTXO(pubKeyHash)
 		handleErr(err, bc)
 
 		balance := 0

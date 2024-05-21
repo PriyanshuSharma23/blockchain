@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/PriyanshuSharma23/custom_blockchain/internals/blockchain"
 	"github.com/spf13/cobra"
@@ -29,13 +28,17 @@ var printchainCmd = &cobra.Command{
 			if block == nil {
 				break
 			}
-			fmt.Println()
-			fmt.Printf("Hash of the block %x\n", block.Hash)
-			fmt.Printf("Hash of the previous Block: %x\n", block.PrevHash)
 
-			pow := blockchain.NewProof(block)
-			fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
-			fmt.Println()
+			for _, tx := range block.Transactions {
+				fmt.Println(tx)
+			}
+			// fmt.Println()
+			// fmt.Printf("Hash of the block %x\n", block.Hash)
+			// fmt.Printf("Hash of the previous Block: %x\n", block.PrevHash)
+			//
+			// pow := blockchain.NewProof(block)
+			// fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
+			// fmt.Println()
 		}
 	},
 }

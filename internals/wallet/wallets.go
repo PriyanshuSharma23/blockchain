@@ -3,9 +3,11 @@ package wallet
 
 import (
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"encoding/json"
 	"io"
-	"log"
+	"math/big"
 	"os"
 )
 
@@ -79,45 +81,81 @@ func loadFromFile() (*Wallets, error) {
 	return &ws, err
 }
 
+// PrivateKeyJSON struct to represent the JSON structure of the private key
+type privateKeyJSON struct {
+	D         string        `json:"D"`
+	PublicKey publicKeyJSON `json:"PublicKey"`
+}
+
+// PublicKeyJSON struct to represent the JSON structure of the public key
+type publicKeyJSON struct {
+	X string `json:"X"`
+	Y string `json:"Y"`
+}
+
+// WalletJSON struct to represent the JSON structure of a wallet
+type walletJSON struct {
+	PrivateKey privateKeyJSON `json:"PrivateKey"`
+	PublicKey  []byte         `json:"PublicKey"`
+}
+
 func (ws *Wallets) encode() ([]byte, error) {
 	wsSlice := []any{}
 
 	for _, w := range ws.m {
-		mapStringAny := map[string]any{
-			"PrivateKey": map[string]any{
-				"D": w.PrivateKey.D,
-				"PublicKey": map[string]any{
-					"X": w.PrivateKey.PublicKey.X,
-					"Y": w.PrivateKey.PublicKey.Y,
+		walletJSON := walletJSON{
+			PrivateKey: privateKeyJSON{
+				D: w.PrivateKey.D.String(),
+				PublicKey: publicKeyJSON{
+					X: w.PrivateKey.PublicKey.X.String(),
+					Y: w.PrivateKey.PublicKey.Y.String(),
 				},
-				"X": w.PrivateKey.X,
-				"Y": w.PrivateKey.Y,
 			},
-			"PublicKey": w.PublicKey,
+			PublicKey: w.PublicKey,
 		}
 
-		wsSlice = append(wsSlice, mapStringAny)
+		wsSlice = append(wsSlice, walletJSON)
 	}
 
 	return json.Marshal(wsSlice)
 }
 
 func decodeWallets(r io.Reader) (Wallets, error) {
-	var wSlice []Wallet
+	var wsSlice []walletJSON
+	var wallets Wallets
+	wallets.m = make(map[string]*Wallet)
 
 	decoder := json.NewDecoder(r)
-	err := decoder.Decode(&wSlice)
-
-	var wm = make(walletsMap)
-	for _, w := range wSlice {
-		wm[w.Address()] = &w
+	if err := decoder.Decode(&wsSlice); err != nil {
+		return wallets, err
 	}
 
-	if err != nil {
-		log.Panic(err)
+	for _, w := range wsSlice {
+		D := new(big.Int)
+		D.SetString(w.PrivateKey.D, 10)
+
+		X := new(big.Int)
+		X.SetString(w.PrivateKey.PublicKey.X, 10)
+
+		Y := new(big.Int)
+		Y.SetString(w.PrivateKey.PublicKey.Y, 10)
+
+		privateKey := &ecdsa.PrivateKey{
+			PublicKey: ecdsa.PublicKey{
+				Curve: elliptic.P256(), // Assuming the curve is P256, modify as necessary
+				X:     X,
+				Y:     Y,
+			},
+			D: D,
+		}
+
+		wallet := &Wallet{
+			PrivateKey: privateKey,
+			PublicKey:  w.PublicKey,
+		}
+
+		wallets.m[wallet.Address()] = wallet
 	}
 
-	return Wallets{
-		m: wm,
-	}, nil
+	return wallets, nil
 }
